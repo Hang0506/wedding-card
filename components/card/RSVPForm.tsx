@@ -99,7 +99,7 @@ export function RSVPForm({
       answers?: { questionId: string; value: string }[]
     } = {
       rsvpStatus: attending,
-      answers: answersArr.length > 0 ? answersArr : undefined,
+      answers: attending === 'attending' && answersArr.length > 0 ? answersArr : undefined,
     }
 
     if (attending === 'attending' && guestMode === 'free') {
@@ -186,7 +186,7 @@ export function RSVPForm({
       )}
 
       {/* Dynamic questions */}
-      {attending && questions.length > 0 && (
+      {attending === 'attending' && questions.length > 0 && (
         <div className="space-y-4 pt-1">
           <p className="text-xs uppercase tracking-wide text-gray-400 font-semibold">
             Thêm vài thông tin

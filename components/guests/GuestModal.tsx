@@ -49,6 +49,16 @@ interface GuestModalProps {
 // Helpers
 // ──────────────────────────────────────────────
 
+const ICON_OPTIONS = [
+  '🌸', '💞', '💑', '👨‍👩‍👧', '💐', '🌹', '🌷', '🥂', '💘', '🎀', '✨', '🥰', '🎉', '🌼', '🍀', '💖',
+]
+
+// Tách icon (emoji) ở đầu tên: "💞 Em Yến" -> { icon: '💞', text: 'Em Yến' }
+function splitIcon(full: string): { icon: string; text: string } {
+  const m = full.match(/^([^\p{L}\p{N}\s(]+)\s*(.*)$/u)
+  return m ? { icon: m[1], text: m[2] } : { icon: '', text: full }
+}
+
 function rsvpLabel(status: string) {
   if (status === 'attending') return 'Tham dự'
   if (status === 'declined') return 'Từ chối'
@@ -141,6 +151,7 @@ export function GuestModal({
   // Form state
   const [greeting, setGreeting] = useState('Thân Mời')
   const [name, setName] = useState('')
+  const [icon, setIcon] = useState('')
   const [message, setMessage] = useState('')
   const [group, setGroup] = useState('')
   const [newGroup, setNewGroup] = useState('')
@@ -157,13 +168,16 @@ export function GuestModal({
   useEffect(() => {
     if (mode === 'edit' && guest) {
       setGreeting(guest.greeting || 'Thân Mời')
-      setName(guest.name)
+      const parts = splitIcon(guest.name)
+      setIcon(parts.icon)
+      setName(parts.text)
       setMessage(guest.message ?? '')
       setGroup(guest.group ?? '')
       setActiveTab('details')
     } else {
       setGreeting('Thân Mời')
       setName('')
+      setIcon('')
       setMessage('')
       setGroup('')
       setNewGroup('')
@@ -182,6 +196,7 @@ export function GuestModal({
     if (!name.trim()) return
     setIsLoading(true)
 
+    const fullName = icon ? `${icon} ${name.trim()}` : name.trim()
     const resolvedGroup = showNewGroup ? newGroup.trim() || undefined : group || undefined
 
     try {
@@ -190,7 +205,7 @@ export function GuestModal({
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            name: name.trim(),
+            name: fullName,
             greeting: greeting.trim() || 'Thân Mời',
             message: message.trim() || undefined,
             group: resolvedGroup,
@@ -205,7 +220,7 @@ export function GuestModal({
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            name: name.trim(),
+            name: fullName,
             greeting: greeting.trim() || 'Thân Mời',
             message: message.trim() || null,
             group: resolvedGroup ?? null,
@@ -222,7 +237,7 @@ export function GuestModal({
     } finally {
       setIsLoading(false)
     }
-  }, [adminToken, greeting, group, guest, message, mode, name, newGroup, onClose, onSuccess, showNewGroup])
+  }, [adminToken, greeting, group, guest, icon, message, mode, name, newGroup, onClose, onSuccess, showNewGroup])
 
   const handleDelete = useCallback(async () => {
     if (!guest) return
@@ -354,6 +369,39 @@ export function GuestModal({
                   placeholder="Nguyễn Văn A"
                   required
                 />
+                <div className="space-y-1.5 pt-1">
+                  <p className="text-xs text-muted-foreground">Icon gắn với tên (hiện trên thiệp)</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setIcon('')}
+                      className={`h-8 rounded-lg border px-2 text-xs ${icon === '' ? 'border-[#e83e8c] bg-pink-50 text-[#e83e8c]' : 'border-input text-muted-foreground'}`}
+                    >
+                      Không
+                    </button>
+                    {ICON_OPTIONS.map((ic) => (
+                      <button
+                        key={ic}
+                        type="button"
+                        onClick={() => setIcon(ic)}
+                        className={`h-8 min-w-8 rounded-lg border px-1.5 text-base leading-none ${icon === ic ? 'border-[#e83e8c] bg-pink-50' : 'border-input'}`}
+                      >
+                        {ic}
+                      </button>
+                    ))}
+                  </div>
+                  <Input
+                    value={icon}
+                    onChange={(e) => setIcon(e.target.value.trim())}
+                    placeholder="Hoặc dán icon khác..."
+                    className="h-8 w-44"
+                  />
+                  {name && (
+                    <p className="text-sm">
+                      Hiển thị: <span className="font-medium">{icon ? `${icon} ` : ''}{name}</span>
+                    </p>
+                  )}
+                </div>
                 {name && (
                   <p className="text-xs text-muted-foreground">
                     Slug:{' '}
