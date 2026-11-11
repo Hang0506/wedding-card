@@ -139,8 +139,8 @@ export function RSVPForm({
         <p className="font-medium text-gray-700 text-sm">Bạn có tham dự không?</p>
         <div className="flex gap-3">
           {[
-            { value: 'attending' as const, label: '💐 Có, tôi sẽ đến', bg: '#fce4ec' },
-            { value: 'declined' as const, label: '😔 Không, tôi bận', bg: '#f5f5f5' },
+            { value: 'attending' as const, label: '💐 Có, tôi sẽ đến nha', bg: '#fce4ec' },
+            { value: 'declined' as const, label: '🥺 Tiếc quá, tôi bận mất rồi', bg: '#f5f5f5' },
           ].map(({ value, label, bg }) => (
             <button
               key={value}
