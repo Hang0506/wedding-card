@@ -1,0 +1,90 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Wedding {
+  id            String   @id @default(cuid())
+  adminToken    String   @unique
+  slug          String   @unique
+  groomName     String   @default("")
+  brideName     String   @default("")
+  groomShort    String?
+  brideShort    String?
+  groomTitle    String   @default("Chú Rể")
+  brideTitle    String   @default("Cô Dâu")
+  displayOrder  String   @default("groom_first")
+  coverPhotoUrl String?
+  galleryUrls   String[] @default([])
+  galleryStyle  String   @default("grid")
+  groomFamily   Json?
+  brideFamily   Json?
+  announcement  String?
+  events        Json[]   @default([])
+  reception     Json?
+  rsvpConfig    Json?
+  dressCode     Json?
+  guestbook     Boolean  @default(true)
+  bankAccounts  Json[]   @default([])
+  thankYouMsg   String?
+  bgMusicUrl    String?
+  envelopeStyle String   @default("default")
+  sharePhotoUrl String?
+  settings      Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  guests        Guest[]
+  questions     Question[]
+  guestbookEntries GuestbookEntry[]
+}
+
+model Guest {
+  id          String    @id @default(cuid())
+  weddingId   String
+  wedding     Wedding   @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  name        String
+  slug        String
+  greeting    String    @default("Thân Mời")
+  message     String?
+  group       String?
+  rsvpStatus  String    @default("pending")
+  rsvpCount   Int?
+  answeredAt  DateTime?
+  rsvpAnswers Json?
+  answers     Answer[]
+  createdAt   DateTime  @default(now())
+  @@unique([weddingId, slug])
+}
+
+model Question {
+  id        String   @id @default(cuid())
+  weddingId String
+  wedding   Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  text      String
+  type      String   @default("text")
+  options   String[] @default([])
+  answers   Answer[]
+}
+
+model Answer {
+  id         String   @id @default(cuid())
+  guestId    String
+  guest      Guest    @relation(fields: [guestId], references: [id], onDelete: Cascade)
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  value      String
+  @@unique([guestId, questionId])
+}
+
+model GuestbookEntry {
+  id        String   @id @default(cuid())
+  weddingId String
+  wedding   Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  name      String
+  message   String
+  createdAt DateTime @default(now())
+}
